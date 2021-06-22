@@ -16,7 +16,7 @@ RegisterCommand("vote", function(source, args, rawcommand)
     playerLicense = getLicense(source) -- TEST
 
     if playerLicense then
-
+        
         MySQL.Async.fetchAll("SELECT character_id, almacoinn, resetokens FROM users WHERE identifier = '"..playerLicense.."' ", {}, function (result)
             local playerId = result[1].character_id
             local tokens = result[1].almacoinn
@@ -26,7 +26,7 @@ RegisterCommand("vote", function(source, args, rawcommand)
 
                 PerformHttpRequest("https://api.top-serveurs.net/v1/votes/check?server_token=BOL6BCOX3I&playername="..playerId, function (errorCode, resultData, resultHeaders)
                     local data = json.decode(resultData)
-    
+
                     if data then
     
                         local tempsApi = string.match(data.message,"%d+")
@@ -41,36 +41,28 @@ RegisterCommand("vote", function(source, args, rawcommand)
 
                             if codeApi == 200 then -- ACTIONS A ENTREPRENDRE SI LE JOUEUR A BIEN VOTE
 
-                                PerformHttpRequest("http://worldtimeapi.org/api/timezone/Europe/Paris", function (errorCode, resultData, resultHeaders)
+                                PerformHttpRequest("https://southbeach.city/api/api", function (errorCode, resultData, resultHeaders)
                                     local utcLocalData = json.decode(resultData)
 
                                     if utcLocalData then
-                                        local actualTime = string.gsub(utcLocalData.datetime, "%D", "")
+                                        local actualTime = string.gsub(utcLocalData.paris, "%D", "")
+    
+                                            local resetokensTime = string.gsub(utcReunionData.gmt, "%D", "")
 
-                                        PerformHttpRequest("http://worldtimeapi.org/api/timezone/Indian/Reunion", function (errorCode, resultData, resultHeaders)
-                                            local utcReunionData = json.decode(resultData)
-    
-                                            if utcReunionData then
-                                                local resetokensTime = string.gsub(utcReunionData.datetime, "%D", "")
+                                            if actualTime >= resetokens then
 
-                                                if actualTime >= resetokens then
-    
-                                                    local tokensGift = math.random( 10, 20 )
-            
-                                                    local tokens = tokens + tokensGift
-            
-                                                    MySQL.Async.execute("UPDATE users SET almacoinn= '"..tokens.."' WHERE character_id = '"..playerId.."'", {}, function() end)
-                                                    MySQL.Async.execute("UPDATE users SET resetokens= '"..resetokensTime.."' WHERE character_id = '"..playerId.."'", {}, function() end)
-            
-                                                    TriggerClientEvent("::{korioz#0110}::esx:showNotification", source, "~g~Vous venez de remporter "..tokensGift.." tokens pour avoir voté pour SouthBeach, Merci à vous !")
-                                                else
-                                                    TriggerClientEvent("::{korioz#0110}::esx:showNotification", source, "~r~Vous avez déjà reçu votre récompense de vote. Veuillez attendre "..tempsRevote)
-                                                end
-    
+                                                local tokensGift = math.random( 10, 20 )
+        
+                                                local tokens = tokens + tokensGift
+
+                                                MySQL.Async.execute("UPDATE users SET almacoinn= '"..tokens.."' WHERE character_id = '"..playerId.."'", {}, function() end)
+                                                MySQL.Async.execute("UPDATE users SET resetokens= '"..resetokensTime.."' WHERE character_id = '"..playerId.."'", {}, function() end)
+
+                                                TriggerClientEvent("::{korioz#0110}::esx:showNotification", source, "~g~Vous venez de remporter "..tokensGift.." tokens pour avoir voté pour SouthBeach, Merci à vous !")
                                             else
-                                                TriggerClientEvent("::{korioz#0110}::esx:showNotification", source, "~r~Une erreur est survenue. Veuillez contacter un administrateur - Code erreur : #Echo")
+                                                TriggerClientEvent("::{korioz#0110}::esx:showNotification", source, "~r~Vous avez déjà reçu votre récompense de vote. Veuillez attendre "..tempsRevote)
                                             end
-                                        end)
+
                                     else
                                         TriggerClientEvent("::{korioz#0110}::esx:showNotification", source, "~r~Une erreur est survenue. Veuillez contacter un administrateur - Code erreur : #Kilo")
                                     end
